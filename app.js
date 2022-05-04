@@ -4,11 +4,11 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const moongose = require("mongoose");
-const encrypt = require("mongoose-encryption");
+//const encrypt = require("mongoose-encryption");
+const md5 = require("md5");
 const { default: mongoose } = require("mongoose");
 
 const app = express();
-
 
 app.use(express.static("public"));
 app.set("view engine", "ejs");
@@ -24,7 +24,7 @@ const userScheme = new mongoose.Schema({
 });
 
 
-userScheme.plugin(encrypt, { secret: process.env.SECRET, encryptedFields: ["password"] })
+//userScheme.plugin(encrypt, { secret: process.env.SECRET, encryptedFields: ["password"] })
 
 const User = new mongoose.model("USER", userScheme);
 
@@ -40,9 +40,10 @@ app.get("/register", function(req, res) {
     res.render("register");
 });
 
+
 app.post("/login", function(req, res) {
     const username = req.body.username;
-    const password = req.body.password;
+    const password = md5(req.body.password);
 
     User.findOne({ email: username }, function(err, foundUser) {
         if (err) {
@@ -60,7 +61,7 @@ app.post("/login", function(req, res) {
 app.post("/register", function(req, res) {
     const newUser = new User({
         email: req.body.username,
-        password: req.body.password
+        password: md5(req.body.password)
     });
 
     newUser.save(function(err) {
@@ -72,7 +73,7 @@ app.post("/register", function(req, res) {
 });
 
 
-
+//PORTDB is found in the .env file. 
 app.listen(process.env.PORTDB || process.env.PORT, function() {
     console.log("Server started on port " + process.env.PORTDB);
 });
